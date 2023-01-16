@@ -42,7 +42,7 @@ int isPrime (int x) {
 
 void print_prime_serial (int n) {
 
-	for (int i=2; i<n; i++) {
+	for (int i=2; i<=n; i++) {
 		if (isPrime (i)) {
 			printf ("%d ", i);
 		}

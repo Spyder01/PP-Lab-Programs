@@ -1,80 +1,69 @@
 #include <omp.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-void merge_sort(int a[], int low, int high);
-void merge(int a[], int low, int mid, int high);
-void display(int a[], int n);
-
-int main() {
-  int *a, n;
-
-  printf("Enter number of elements in the array \n");
-  scanf("%d", &n);
-
-  a = (int *)malloc(sizeof(int) * n);
-
-  printf("Enter Array elements \n");
-  for (int i = 0; i < n; i++) {
-    scanf("%d", &a[i]);
+void merge(int array[], int low, int mid, int high) {
+  int temp[30];
+  int i, j, k, m;
+  j = low;
+  m = mid + 1;
+  for (i = low; j <= mid && m <= high; i++) {
+    if (array[j] <= array[m]) {
+      temp[i] = array[j];
+      j++;
+    } else {
+      temp[i] = array[m];
+      m++;
+    }
   }
-
-  merge_sort(a, 0, n - 1);
-
-  display(a, n);
-
-  return 0;
+  if (j > mid) {
+    for (k = m; k <= high; k++) {
+      temp[i] = array[k];
+      i++;
+    }
+  } else {
+    for (k = j; k <= mid; k++) {
+      temp[i] = array[k];
+      i++;
+    }
+  }
+  for (k = low; k <= high; k++)
+    array[k] = temp[k];
 }
 
-void merge_sort(int a[], int low, int high) {
+void mergesort(int array[], int low, int high) {
   int mid;
-
   if (low < high) {
     mid = (low + high) / 2;
 
 #pragma omp parallel sections num_threads(2)
     {
 #pragma omp section
-      { merge_sort(a, low, mid); }
+      { mergesort(array, low, mid); }
+
 #pragma omp section
-      { merge_sort(a, mid + 1, high); }
+      { mergesort(array, mid + 1, high); }
     }
-    merge(a, low, mid, high);
+    merge(array, low, mid, high);
   }
 }
 
-void merge(int array[], int low, int mid, int high) {
-  int temp[50];
-
-  int p, q, i;
-  p = low;
-  q = mid + 1;
-
-  for (i = 0; p <= mid && q <= high; i++) {
-    if (array[p] <= array[q]) {
-      temp[i] = array[p++];
-    } else {
-      temp[i] = array[q++];
-    }
+int main() {
+  int array[50];
+  int i, size;
+  printf("Enter total no. of elements:\n");
+  scanf("%d", &size);
+  printf("Enter %d elements:\n", size);
+  for (i = 0; i < size; i++) {
+    scanf("%d", &array[i]);
   }
-  if (p > mid) {
-    for (int j = q; j <= high; j++) {
-      temp[i++] = array[j];
-    }
-  } else {
-    for (int j = p; j <= mid; j++) {
-      temp[i++] = array[j];
-    }
-  }
+  double start = omp_get_wtime ();
+  mergesort(array, 0, size - 1);
+  double end = omp_get_wtime ();
+  printf("Sorted Elements as follows:\n");
+  for (i = 0; i < size; i++)
+    printf("%d ", array[i]);
+  printf("\n");
 
-  for (int i = 0; i <= high; i++) {
-    array[i] = temp[i];
-  }
-}
-
-void display(int a[], int n) {
-  printf("Printing Array inside display \n");
-  for (int i = 0; i < n; i++) {
-    printf("%d \n", a[i]);
-  }
+  printf ("The time taken for execution: %lf \n", end-start);
+  return 0;
 }
